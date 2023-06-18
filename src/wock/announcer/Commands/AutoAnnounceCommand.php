@@ -15,7 +15,7 @@ class AutoAnnounceCommand extends Command implements PluginOwned {
 
     public function __construct(AutoAnnouncer $plugin) {
         parent::__construct("autoannouncer", "Reload the AutoAnnouncer configuration", "/autoannouncer", ["aa"]);
-        $this->setPermission("autoannounce.reload");
+        $this->setPermission("autoannouncer.reload");
         $this->plugin = $plugin;
     }
 
