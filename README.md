@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" alt="AutoAnnouncer Logo">
+  <img src="icon.png" alt="AutoAnnouncer Logo">
 </p>
 
 <h1 align="center">AutoAnnouncer Plugin</h1>
