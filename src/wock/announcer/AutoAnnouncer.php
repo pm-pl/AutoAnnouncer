@@ -3,7 +3,7 @@
 namespace wock\announcer;
 
 use pocketmine\plugin\PluginBase;
-use pocketmine\scheduler\Task;
+use wock\announcer\Tasks\AnnounceTask;
 
 class AutoAnnouncer extends PluginBase {
 
