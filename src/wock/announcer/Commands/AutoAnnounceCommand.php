@@ -21,7 +21,7 @@ class AutoAnnounceCommand extends Command implements PluginOwned {
 
     public function execute(CommandSender $sender, string $commandLabel, array $args): bool
     {
-        if (!$sender->hasPermission("autoannounce.reload")) {
+        if (!$sender->hasPermission("autoannouncer.reload")) {
             $sender->sendMessage(TextFormat::RED . "You do not have sufficient permission to use this command!");
             return false;
         }
