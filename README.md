@@ -26,7 +26,7 @@
 
 ### Installation
 
-1. Download the latest plugin release from the [Releases](https://github.com/your-username/AutoAnnouncer/releases) page.
+1. Download the latest plugin release from the [Releases](https://github.com/iLVOEWOCK/AutoAnnouncer/releases) page.
 2. Place the downloaded `AutoAnnouncer.phar` file into your server's `plugins` directory.
 3. Restart or reload your server.
 4. Customize the plugin's settings and messages in the `config.yml` file.
