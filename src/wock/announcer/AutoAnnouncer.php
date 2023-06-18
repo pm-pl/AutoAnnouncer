@@ -27,18 +27,7 @@ class AutoAnnouncer extends PluginBase {
 
         $interval = $config->get("interval", 1200); // Default interval: 60 seconds (20 ticks per second)
 
-        $this->getScheduler()->scheduleRepeatingTask(new class($this) extends Task {
-            /** @var AutoAnnouncer */
-            private AutoAnnouncer $plugin;
-
-            public function __construct(AutoAnnouncer $plugin) {
-                $this->plugin = $plugin;
-            }
-
-            public function onRun(): void {
-                $this->plugin->broadcastNextMessage();
-            }
-        }, $interval);
+        $this->getScheduler()->scheduleRepeatingTask(new AnnounceTask($this), $interval);
     }
 
     public function broadcastNextMessage(): void {
