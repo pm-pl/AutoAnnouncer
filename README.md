@@ -15,6 +15,9 @@
   <a href="#commands">Commands</a> •
 </p>
 
+[![](https://poggit.pmmp.io/shield.state/AutoAnnouncer)](https://poggit.pmmp.io/p/AutoAnnouncer)
+<a href="https://poggit.pmmp.io/p/AutoAnnouncer"><img src="https://poggit.pmmp.io/shield.state/AutoAnnouncer"></a> [![](https://poggit.pmmp.io/shield.api/AutoAnnouncer)](https://poggit.pmmp.io/p/AutoAnnouncer)
+<a href="https://poggit.pmmp.io/p/AutoAnnouncer"><img src="https://poggit.pmmp.io/shield.api/AutoAnnouncer"></a>
 ---
 
 ### Features
