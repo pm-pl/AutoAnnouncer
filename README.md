@@ -55,7 +55,7 @@ messages:
   - "&r&aWelcome to the server! \n&r&7Read /rules!"
   - "&r&7Enjoy your stay!"
   - "&r&6Visit our website at example.com"
-
+```
 # Icon
 
 <a href="https://www.flaticon.com/free-icons/bullhorn" title="bullhorn icons">Bullhorn icons created by Freepik - Flaticon</a>
