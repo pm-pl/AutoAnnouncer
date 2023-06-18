@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="icon.png" alt="AutoAnnouncer Logo">
+  <img src="icon.png" alt="AutoAnnouncer Logo" width="200">
 </p>
 
 <h1 align="center">AutoAnnouncer Plugin</h1>
 
 <p align="center">
-  <strong>An automated announcement plugin for your Minecraft server</strong>
+  <strong>An automated announcement plugin for your Pocketmine-MP server</strong>
 </p>
 
 <p align="center">
