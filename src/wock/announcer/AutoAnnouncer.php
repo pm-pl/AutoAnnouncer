@@ -75,7 +75,11 @@ class AutoAnnouncer extends PluginBase {
                 foreach ($this->getServer()->getOnlinePlayers() as $player) {
                     $formattedMessage = ($firstLine && $this->usePrefix) ? C::colorize($this->prefix) . $formattedLine : $formattedLine;
                     $player->sendMessage($formattedMessage);
-                    $this->playSound($player, $config->getNested("settings.sound", "random.levelup"));
+
+                    $soundSetting = $this->getConfig()->getNested("settings.sound");
+                    if ($soundSetting) {
+                        $this->playSound($player, $soundSetting);
+                    }
                 }
 
                 $firstLine = false;
