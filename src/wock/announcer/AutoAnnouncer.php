@@ -8,7 +8,7 @@ use wock\announcer\Tasks\AnnounceTask;
 class AutoAnnouncer extends PluginBase {
 
     /** @var string[] */
-    private array $messages;
+    public array $messages;
     /** @var int */
     private int $currentIndex;
     /** @var string */
@@ -18,39 +18,101 @@ class AutoAnnouncer extends PluginBase {
 
     public function onEnable(): void
     {
-        $this->saveDefaultConfig();
         $config = $this->getConfig();
+
+        $currentVersion = $config->get("version");
+
+        if ($currentVersion === null) {
+            $this->getLogger()->info("Updating configuration to new format");
+            $this->saveOldConfig();
+            $this->updateConfig();
+            $config = $this->getConfig();
+        } elseif ($currentVersion !== "1.0.1") {
+            $this->getLogger()->info("Updating configuration to version 1.0.1");
+            $this->saveOldConfig();
+            $this->updateConfig();
+            $config = $this->getConfig();
+        }
+
         $this->messages = $config->get("messages", []);
         $this->currentIndex = 0;
-        $this->prefix = $config->get("prefix", "[AA]");
-        $this->usePrefix = $config->get("use-prefix", true);
+        $this->prefix = $config->getNested("settings.prefix", "[AA] ");
+        $this->usePrefix = $config->getNested("settings.use-prefix", true);
 
-        $interval = $config->get("interval", 1200); // Default interval: 60 seconds (20 ticks per second)
+        $interval = $config->getNested("settings.interval", 60);
 
-        $this->getScheduler()->scheduleRepeatingTask(new AnnounceTask($this), $interval);
+        $this->getScheduler()->scheduleRepeatingTask(new AnnounceTask($this), $interval * 20);
+        $this->getServer()->getCommandMap()->register("autoannouncer", new AutoAnnounceCommand($this));
     }
 
-    public function broadcastNextMessage(): void {
-        if (count($this->messages) > 0) {
-            $message = $this->messages[$this->currentIndex];
-            if ($this->usePrefix) {
-                $message = $this->prefix . $message;
-            }
-            $formattedMessage = $this->formatMessage($message);
+    public function broadcastNextMessage(): void
+    {
+        $config = $this->getConfig();
+        $messagesConfig = $config->get("messages", []);
 
-            $players = $this->getServer()->getOnlinePlayers();
-            foreach ($players as $player) {
-                $player->sendMessage($formattedMessage);
+        if (count($messagesConfig) > 0) {
+            if ($config->getNested("settings.random") === true) {
+                $randomIndex = mt_rand(0, count($messagesConfig) - 1);
+                $messageConfig = $messagesConfig[$randomIndex]['message'] ?? [];
+            } elseif ($config->getNested("settings.random") === false) {
+                $messageConfig = $messagesConfig[$this->currentIndex]['message'] ?? [];
+                $this->currentIndex = ($this->currentIndex + 1) % count($messagesConfig);
             }
 
-            $this->currentIndex = ($this->currentIndex + 1) % count($this->messages);
+            if (empty($messageConfig)) {
+                return;
+            }
+
+            $firstLine = true;
+            foreach ($messageConfig as $messageLine) {
+                $formattedLine = C::colorize($messageLine);
+
+                foreach ($this->getServer()->getOnlinePlayers() as $player) {
+                    $formattedMessage = ($firstLine && $this->usePrefix) ? C::colorize($this->prefix) . $formattedLine : $formattedLine;
+                    $player->sendMessage($formattedMessage);
+                    $this->playSound($player, $config->getNested("settings.sound", "random.levelup"));
+                }
+
+                $firstLine = false;
+            }
         }
     }
 
-    public function formatMessage(string $message): string {
-        $message = str_replace("&", "§", $message);
-        $message = str_replace("\\n", PHP_EOL, $message);
-        return $message;
+    /**
+     * @param Entity $player
+     * @param string $sound
+     * @param int $volume
+     * @param int $pitch
+     * @param int $radius
+     */
+    public function playSound(Entity $player, string $sound, int $volume = 1, int $pitch = 1, int $radius = 5): void
+    {
+        foreach ($player->getWorld()->getNearbyEntities($player->getBoundingBox()->expandedCopy($radius, $radius, $radius)) as $p) {
+            if ($p instanceof Player) {
+                if ($p->isOnline()) {
+                    $spk = new PlaySoundPacket();
+                    $spk->soundName = $sound;
+                    $spk->x = $p->getLocation()->getX();
+                    $spk->y = $p->getLocation()->getY();
+                    $spk->z = $p->getLocation()->getZ();
+                    $spk->volume = $volume;
+                    $spk->pitch = $pitch;
+                    $p->getNetworkSession()->sendDataPacket($spk);
+                }
+            }
+        }
+    }
+
+    private function saveOldConfig(): void
+    {
+        $oldConfigPath = $this->getDataFolder() . "old_config.yml";
+        $this->saveResource("config.yml", false);
+        rename($this->getDataFolder() . "config.yml", $oldConfigPath);
+    }
+
+    private function updateConfig(): void
+    {
+        $this->saveDefaultConfig();
     }
 }
 
