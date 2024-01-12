@@ -2,7 +2,12 @@
 
 namespace wock\announcer;
 
+use pocketmine\entity\Entity;
+use pocketmine\network\mcpe\protocol\PlaySoundPacket;
+use pocketmine\player\Player;
 use pocketmine\plugin\PluginBase;
+use pocketmine\utils\TextFormat as C;
+use wock\announcer\Commands\AutoAnnounceCommand;
 use wock\announcer\Tasks\AnnounceTask;
 
 class AutoAnnouncer extends PluginBase {
