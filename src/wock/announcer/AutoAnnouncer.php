@@ -24,18 +24,12 @@ class AutoAnnouncer extends PluginBase {
     public function onEnable(): void
     {
         $config = $this->getConfig();
-
         $currentVersion = $config->get("version");
 
-        if ($currentVersion === null) {
-            $this->getLogger()->info("Updating configuration to new format");
+        if ($currentVersion === null || $currentVersion !== "1.0.1") {
+            $this->getLogger()->info($currentVersion === null ? "Updating configuration to new format" : "Updating configuration to version 1.0.1");
             $this->saveOldConfig();
-            $this->updateConfig();
-            $config = $this->getConfig();
-        } elseif ($currentVersion !== "1.0.1") {
-            $this->getLogger()->info("Updating configuration to version 1.0.1");
-            $this->saveOldConfig();
-            $this->updateConfig();
+            $this->saveDefaultConfig();
             $config = $this->getConfig();
         }
 
@@ -54,35 +48,29 @@ class AutoAnnouncer extends PluginBase {
     {
         $config = $this->getConfig();
         $messagesConfig = $config->get("messages", []);
-
-        if (count($messagesConfig) > 0) {
-            if ($config->getNested("settings.random") === true) {
-                $randomIndex = mt_rand(0, count($messagesConfig) - 1);
-                $messageConfig = $messagesConfig[$randomIndex]['message'] ?? [];
-            } elseif ($config->getNested("settings.random") === false) {
-                $messageConfig = $messagesConfig[$this->currentIndex]['message'] ?? [];
-                $this->currentIndex = ($this->currentIndex + 1) % count($messagesConfig);
-            }
-
-            if (empty($messageConfig)) {
-                return;
-            }
-
-            $firstLine = true;
-            foreach ($messageConfig as $messageLine) {
-                $formattedLine = C::colorize($messageLine);
-
-                foreach ($this->getServer()->getOnlinePlayers() as $player) {
-                    $formattedMessage = ($firstLine && $this->usePrefix) ? C::colorize($this->prefix) . $formattedLine : $formattedLine;
-                    $player->sendMessage($formattedMessage);
-
-                    $soundSetting = $this->getConfig()->getNested("settings.sound");
-                    if ($soundSetting) {
-                        $this->playSound($player, $soundSetting);
-                    }
+        $soundSetting = $config->getNested("settings.sound");
+        $prefix = $this->usePrefix ? C::colorize($this->prefix) : '';
+        
+        if (empty($messagesConfig)) {
+            return;
+        }
+        
+        $messageConfig = $config->getNested("settings.random") === true
+            ? $messagesConfig[mt_rand(0, count($messagesConfig) - 1)]['message'] ?? []
+            : $messagesConfig[$this->currentIndex]['message'] ?? [];
+        
+        $this->currentIndex = ($this->currentIndex + 1) % count($messagesConfig);
+        
+        foreach ($messageConfig as $index => $messageLine) {
+            $formattedLine = C::colorize($messageLine);
+            $formattedMessage = $index === 0 ? $prefix . $formattedLine : $formattedLine;
+            
+            foreach ($this->getServer()->getOnlinePlayers() as $player) {
+                $player->sendMessage($formattedMessage);
+                
+                if ($soundSetting) {
+                    $this->playSound($player, $soundSetting);
                 }
-
-                $firstLine = false;
             }
         }
     }
@@ -98,16 +86,10 @@ class AutoAnnouncer extends PluginBase {
     {
         foreach ($player->getWorld()->getNearbyEntities($player->getBoundingBox()->expandedCopy($radius, $radius, $radius)) as $p) {
             if ($p instanceof Player) {
-                if ($p->isOnline()) {
-                    $spk = new PlaySoundPacket();
-                    $spk->soundName = $sound;
-                    $spk->x = $p->getLocation()->getX();
-                    $spk->y = $p->getLocation()->getY();
-                    $spk->z = $p->getLocation()->getZ();
-                    $spk->volume = $volume;
-                    $spk->pitch = $pitch;
-                    $p->getNetworkSession()->sendDataPacket($spk);
-                }
+                $location = $p->getLocation();
+                $p->getNetworkSession()->sendDataPacket(
+                    PlaySoundPacket::create($sound, floatval($location->getX()), floatval($location->getY()), floatval($location->getZ()), $volume, $pitch)
+                );
             }
         }
     }
@@ -118,10 +100,4 @@ class AutoAnnouncer extends PluginBase {
         $this->saveResource("config.yml", false);
         rename($this->getDataFolder() . "config.yml", $oldConfigPath);
     }
-
-    private function updateConfig(): void
-    {
-        $this->saveDefaultConfig();
-    }
 }
-
